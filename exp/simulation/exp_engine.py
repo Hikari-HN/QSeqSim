@@ -11,7 +11,7 @@ from typing import Optional, Dict, List
 
 # 确保src目录可导入
 current_dir = Path(__file__).parent.resolve()
-project_root = current_dir.parent
+project_root = current_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
@@ -108,6 +108,7 @@ class ExperimentRunner:
             # =======================================================
 
             print("✅ 执行完成!")
+            
             sim.print_state_vec()
 
             # 打印时间统计

@@ -1,0 +1,13 @@
+[2025-12-04 14:20:11] Grover experiment log (n=256) initialized
+[2025-12-04 14:20:11] ========== Starting experiment: n=256, it=1000 ==========
+[2025-12-04 14:20:11] Iteration 1 - Probability: 0.5, Cumulative time: 0.4795 seconds
+[2025-12-04 14:24:27] Iteration 2 - Probability: 3.454467422037778e-77, Cumulative time: 256.5927 seconds
+[2025-12-04 14:28:58] Iteration 3 - Probability: 0.125, Cumulative time: 527.6985 seconds
+[2025-12-04 14:34:11] Iteration 4 - Probability: 3.454467422037778e-77, Cumulative time: 840.7863 seconds
+[2025-12-04 14:39:27] Iteration 5 - Probability: 0.03125, Cumulative time: 1156.0522 seconds
+[2025-12-04 14:50:11] ❌ Runtime exceeds 1800 seconds, terminating current experiment
+[2025-12-04 14:50:11] ========== Experiment finished: n=256, it=1000 ==========
+[2025-12-04 14:50:11] Experiment status: timeout, Total runtime: 1800.0168 seconds
+[2025-12-04 14:50:11] ==================================================
+[2025-12-04 14:50:11] Grover experiment (n=256, it=1000) finished
+[2025-12-04 14:50:11] ==================================================

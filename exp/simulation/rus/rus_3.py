@@ -1,17 +1,23 @@
-# rus_1.py (Figure 8)
+# rus_3.py (Figure 9)
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 q = QuantumRegister(2, 'q')
 c = ClassicalRegister(1, 'c') 
 circ = QuantumCircuit(q, c)
+
 def rus_trial(circuit, anc, tar, c):
     circuit.h(anc)
     circuit.t(anc)
-    circuit.cx(anc, tar)
     circuit.h(anc)
-    circuit.cx(anc, tar)
+    circuit.cz(anc, tar)
+    circuit.tdg(anc)
+    circuit.h(anc)
+    circuit.t(anc)
+    circuit.cz(anc, tar)
+    circuit.h(anc)
     circuit.t(anc)
     circuit.h(anc)
+    circuit.z(tar)
     circuit.measure(anc, c)
 
 rus_trial(circ, q[0], q[1], c[0])

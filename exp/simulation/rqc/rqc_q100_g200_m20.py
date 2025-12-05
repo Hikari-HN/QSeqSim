@@ -1,0 +1,293 @@
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+import math
+
+# Benchmark Configuration
+# Target Qubits: 100
+# Target Gates: 200
+# Target Mid-Circuit Measurements: 20
+
+q = QuantumRegister(100, 'q')
+c = ClassicalRegister(20, 'c')
+circ = QuantumCircuit(q, c)
+
+# --- Initialization ---
+circ.h(q[10])
+circ.x(q[49])
+circ.t(q[15])
+circ.h(q[84])
+circ.x(q[58])
+circ.rz(math.pi/2, q[41])
+circ.cz(q[75], q[38])
+circ.x(q[28])
+circ.cz(q[39], q[65])
+circ.t(q[78])
+circ.cx(q[44], q[83])
+circ.cz(q[42], q[45])
+circ.rz(math.pi/2, q[33])
+circ.cx(q[15], q[27])
+circ.t(q[63])
+circ.t(q[30])
+circ.cz(q[22], q[18])
+circ.cz(q[53], q[48])
+circ.cz(q[4], q[97])
+circ.cz(q[71], q[99])
+
+# --- SQC Block: While Loop (Controlled by c[0]) ---
+with circ.while_loop((c[0], 0)):
+    # Loop Body
+    circ.cz(q[60], q[3])
+    circ.t(q[98])
+    circ.t(q[71])
+    circ.t(q[74])
+    circ.x(q[13])
+    circ.s(q[95])
+    circ.h(q[25])
+    circ.cx(q[5], q[75])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[38], c[1])
+    with circ.if_test((c[1], 1)):
+        circ.s(q[12])
+        circ.t(q[25])
+    circ.h(q[96])
+    circ.s(q[74])
+    circ.rz(math.pi/2, q[28])
+    circ.h(q[31])
+    circ.h(q[99])
+    circ.s(q[7])
+    circ.s(q[86])
+    circ.rz(math.pi/2, q[28])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[23], c[2])
+    with circ.if_test((c[2], 1)):
+        circ.t(q[18])
+        circ.x(q[93])
+    circ.x(q[45])
+    circ.cx(q[30], q[69])
+    circ.cx(q[53], q[50])
+    circ.cz(q[28], q[9])
+    circ.h(q[15])
+    circ.h(q[38])
+    circ.x(q[20])
+    circ.h(q[90])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[12], c[3])
+    with circ.if_test((c[3], 1)):
+        circ.s(q[83])
+        circ.h(q[62])
+    circ.t(q[33])
+    circ.h(q[33])
+    circ.x(q[4])
+    circ.h(q[51])
+    circ.t(q[40])
+    circ.cz(q[85], q[26])
+    circ.rz(math.pi/2, q[31])
+    circ.cx(q[7], q[26])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[91], c[4])
+    with circ.if_test((c[4], 1)):
+        circ.x(q[41])
+        circ.h(q[64])
+    circ.h(q[36])
+    circ.rz(math.pi/2, q[35])
+    circ.rz(math.pi/2, q[7])
+    circ.x(q[3])
+    circ.x(q[43])
+    circ.s(q[50])
+    circ.rz(math.pi/2, q[27])
+    circ.cx(q[39], q[89])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[69], c[5])
+    with circ.if_test((c[5], 1)):
+        circ.t(q[83])
+        circ.t(q[76])
+    circ.x(q[10])
+    circ.rz(math.pi/2, q[65])
+    circ.x(q[35])
+    circ.t(q[81])
+    circ.t(q[32])
+    circ.rz(math.pi/2, q[63])
+    circ.s(q[78])
+    circ.x(q[61])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[37], c[6])
+    with circ.if_test((c[6], 1)):
+        circ.t(q[88])
+        circ.cx(q[14], q[7])
+    circ.cz(q[70], q[50])
+    circ.cx(q[91], q[89])
+    circ.cz(q[55], q[49])
+    circ.s(q[13])
+    circ.t(q[7])
+    circ.cx(q[15], q[25])
+    circ.t(q[84])
+    circ.t(q[3])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[80], c[7])
+    with circ.if_test((c[7], 1)):
+        circ.s(q[83])
+        circ.cx(q[9], q[36])
+    circ.t(q[11])
+    circ.cz(q[71], q[44])
+    circ.s(q[60])
+    circ.t(q[86])
+    circ.s(q[94])
+    circ.cx(q[67], q[41])
+    circ.s(q[46])
+    circ.rz(math.pi/2, q[97])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[10], c[8])
+    with circ.if_test((c[8], 1)):
+        circ.x(q[56])
+        circ.cx(q[40], q[61])
+    circ.t(q[41])
+    circ.t(q[79])
+    circ.t(q[55])
+    circ.cz(q[23], q[61])
+    circ.x(q[60])
+    circ.h(q[9])
+    circ.rz(math.pi/2, q[99])
+    circ.x(q[68])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[90], c[9])
+    with circ.if_test((c[9], 1)):
+        circ.h(q[92])
+        circ.t(q[98])
+    circ.t(q[36])
+    circ.s(q[63])
+    circ.t(q[60])
+    circ.cz(q[74], q[8])
+    circ.cz(q[16], q[43])
+    circ.h(q[88])
+    circ.t(q[97])
+    circ.h(q[48])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[22], c[10])
+    with circ.if_test((c[10], 1)):
+        circ.s(q[49])
+        circ.h(q[10])
+    circ.h(q[2])
+    circ.x(q[79])
+    circ.cz(q[83], q[19])
+    circ.s(q[87])
+    circ.x(q[3])
+    circ.rz(math.pi/2, q[72])
+    circ.h(q[6])
+    circ.cx(q[70], q[16])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[45], c[11])
+    with circ.if_test((c[11], 1)):
+        circ.x(q[12])
+        circ.x(q[81])
+    circ.t(q[41])
+    circ.rz(math.pi/2, q[63])
+    circ.s(q[51])
+    circ.rz(math.pi/2, q[16])
+    circ.t(q[54])
+    circ.cz(q[36], q[72])
+    circ.cx(q[64], q[68])
+    circ.h(q[32])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[38], c[12])
+    with circ.if_test((c[12], 1)):
+        circ.x(q[48])
+        circ.cx(q[49], q[87])
+    circ.cz(q[64], q[26])
+    circ.cz(q[45], q[2])
+    circ.x(q[80])
+    circ.cz(q[12], q[46])
+    circ.x(q[73])
+    circ.cx(q[70], q[16])
+    circ.h(q[68])
+    circ.cz(q[25], q[6])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[93], c[13])
+    with circ.if_test((c[13], 1)):
+        circ.x(q[24])
+        circ.cx(q[68], q[38])
+    circ.rz(math.pi/2, q[45])
+    circ.cx(q[94], q[60])
+    circ.cx(q[5], q[61])
+    circ.x(q[86])
+    circ.cz(q[23], q[27])
+    circ.cx(q[52], q[11])
+    circ.x(q[44])
+    circ.t(q[5])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[73], c[14])
+    with circ.if_test((c[14], 1)):
+        circ.x(q[16])
+        circ.x(q[85])
+    circ.rz(math.pi/2, q[51])
+    circ.rz(math.pi/2, q[41])
+    circ.rz(math.pi/2, q[15])
+    circ.h(q[42])
+    circ.t(q[31])
+    circ.cx(q[42], q[52])
+    circ.cx(q[19], q[36])
+    circ.x(q[94])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[81], c[15])
+    with circ.if_test((c[15], 1)):
+        circ.cx(q[53], q[51])
+        circ.h(q[38])
+    circ.h(q[16])
+    circ.s(q[67])
+    circ.s(q[78])
+    circ.h(q[78])
+    circ.x(q[11])
+    circ.h(q[56])
+    circ.t(q[4])
+    circ.t(q[92])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[98], c[16])
+    with circ.if_test((c[16], 1)):
+        circ.cz(q[59], q[48])
+        circ.h(q[68])
+    circ.t(q[54])
+    circ.t(q[3])
+    circ.cz(q[30], q[33])
+    circ.cz(q[1], q[64])
+    circ.h(q[2])
+    circ.x(q[71])
+    circ.x(q[53])
+    circ.t(q[67])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[19], c[17])
+    with circ.if_test((c[17], 1)):
+        circ.h(q[98])
+        circ.t(q[9])
+    circ.cz(q[60], q[93])
+    circ.s(q[55])
+    circ.t(q[39])
+    circ.s(q[15])
+    circ.cz(q[41], q[42])
+    circ.s(q[57])
+    circ.s(q[94])
+    circ.t(q[91])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[43], c[18])
+    with circ.if_test((c[18], 1)):
+        circ.x(q[63])
+        circ.x(q[25])
+    circ.s(q[8])
+    circ.cz(q[57], q[51])
+    circ.cz(q[47], q[63])
+    circ.cx(q[35], q[51])
+    circ.cz(q[94], q[28])
+    circ.cz(q[94], q[19])
+    circ.cz(q[67], q[87])
+    circ.rz(math.pi/2, q[4])
+    # DQC: Mid-circuit measurement
+    circ.measure(q[92], c[19])
+    with circ.if_test((c[19], 1)):
+        circ.s(q[70])
+        circ.rz(math.pi/2, q[10])
+    # Update Loop Condition (Must be FINAL op for q[0])
+    # Ensure termination: Reset q[0] to |0> then apply H
+    circ.reset(q[0])
+    circ.h(q[0])
+    circ.measure(q[0], c[0])
+
+# Simulator Configuration by User
+sim_mode = 'sample'
+# No preset values needed for sample mode
