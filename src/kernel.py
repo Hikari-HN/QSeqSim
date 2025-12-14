@@ -2,12 +2,12 @@ from math import ceil, log2, sqrt, pi, isclose
 import cmath as cm
 from dd import cudd as _bdd
 from fractions import Fraction
-from decimal import Decimal, getcontext  # <--- 必须引入 decimal
+from decimal import Decimal, getcontext  # <--- Must import decimal
 
-# 设置 Decimal 的精度。
-# 256 比特大约需要 77 位十进制精度。
-# 为了安全处理中间运算和抵消，我们设置为 150 位。
-getcontext().prec = 150 
+# Set the precision for Decimal.
+# 256 qubits require approximately 77 decimal digits of precision.
+# To safely handle intermediate calculations and cancellations, we set it to 150 digits.
+getcontext().prec = 150
 
 class BDDCombSim:
     def __init__(self, n, r):
@@ -369,22 +369,23 @@ class BDDCombSim:
         self.X(control)
         for i in range(len(targets)-1, -1, -1):
             self.multi_controlled_X([control]+targets[i+1:], targets[i])
+
     def multi_controlled_X(self, controls, target):
         """
-        实现 C^nX 门：当所有控制位均为 1 时，对目标位执行 X 翻转。
-        controls: list or tuple, 存放控制位索引，比如 [c1, c2, ... , cn]
-        target:  int，目标位索引
+        Implements the C^nX gate: applies X flip to the target qubit when all control qubits are 1.
+        controls: list or tuple, containing control qubit indices, e.g., [c1, c2, ..., cn]
+        target: int, target qubit index
         """
-        r = len(self.Fd)  # 假设和你已有代码风格一致
+        r = len(self.Fd)
 
         def trans(x):
-            # 1) 先构造 "all_controls" 表示所有控制位的与
+            # 1) Construct "all_controls" representing the AND of all control qubits
             all_ctrl_expr = self.BDD.true
             for c in controls:
                 all_ctrl_expr &= self.BDD.var('q%d' % c)
 
-            # 2) 如果所有控制位都为 1，则执行翻转逻辑；否则不变
-            #    翻转逻辑和 X 类似，需要区分目标位是 0 还是 1 后去做 let 替换
+            # 2) If all control qubits are 1, execute flip logic; otherwise, keep unchanged.
+            #    The flip logic is similar to X, distinguishing whether the target bit is 0 or 1 before substitution.
             return (
                     (~all_ctrl_expr & x) |
                     (all_ctrl_expr & self.BDD.var('q%d' % target) &
@@ -401,14 +402,13 @@ class BDDCombSim:
                      ))
             )
 
-        # 3) 遍历更新 self.Fa / self.Fb / self.Fc / self.Fd
+        # 3) Iterate to update self.Fa / self.Fb / self.Fc / self.Fd
         for i in range(r):
             self.Fa[i] = trans(self.Fa[i])
             self.Fb[i] = trans(self.Fb[i])
             self.Fc[i] = trans(self.Fc[i])
             self.Fd[i] = trans(self.Fd[i])
 
-        # 4) 末尾做一次化简，和你代码保持一致
         self.simplify_tail()
 
     # def get_total_bdd(self):
@@ -444,7 +444,7 @@ class BDDCombSim:
     #     if len(target_list) < self.n:
     #         next_list = self.get_next_list(target_list)
     #         return self.get_prob(next_list, result_list + [0]) + self.get_prob(next_list, result_list + [1])
-
+    #
     #     F = self.get_total_bdd()
     #     bool_list = [self.BDD.false, self.BDD.true]
     #     for i in range(len(target_list)):
@@ -482,34 +482,34 @@ class BDDCombSim:
 
     def get_amplitude(self, cpt_basis):
         """
-        【优化后的 get_amplitude】
-        直接根据基态对 Fa/Fb/Fc/Fd 进行约束，不再构建巨大的 get_total_bdd。
-        解决了内存爆炸问题。
+        [Optimized get_amplitude]
+        Directly constraints Fa/Fb/Fc/Fd based on the basis state, without constructing the huge get_total_bdd.
+        Solves the memory explosion problem.
         """
-        # 1. 将整数基态 (如 5 -> 101) 转换为 BDD 的约束字典
-        # 例如：{'q0': True, 'q1': False, 'q2': True}
+        # 1. Convert integer basis state (e.g., 5 -> 101) to BDD constraint dictionary
+        # Example: {'q0': True, 'q1': False, 'q2': True}
         bool_list = [self.BDD.false, self.BDD.true]
         constraint_dict = dict()
         for i in range(self.n):
-            # 注意：这里保持了你原代码的高位在前的逻辑
+            # Note: Preserving the logic where higher bits are at the front
             bit_val = (cpt_basis >> (self.n - 1 - i)) & 1
             constraint_dict['q%d' % i] = bool_list[bit_val]
 
-        # 2. 关键步骤：直接对四个分量列表应用约束
-        # 因为 cpt_basis 包含所有量子比特，应用 let 后，
-        # 列表中的每个 BDD 节点都会直接变成 True 或 False 常数节点。
+        # 2. Key step: Apply constraints directly to the four component lists.
+        # Since cpt_basis includes all qubits, applying let will turn
+        # every BDD node in the list into a constant True or False node.
         restricted_Fa = [self.BDD.let(constraint_dict, f) for f in self.Fa]
         restricted_Fb = [self.BDD.let(constraint_dict, f) for f in self.Fb]
         restricted_Fc = [self.BDD.let(constraint_dict, f) for f in self.Fc]
         restricted_Fd = [self.BDD.let(constraint_dict, f) for f in self.Fd]
 
-        # 3. 直接计算整数值
+        # 3. Directly calculate integer values
         val_a = self._get_value_from_list(restricted_Fa)
         val_b = self._get_value_from_list(restricted_Fb)
         val_c = self._get_value_from_list(restricted_Fc)
         val_d = self._get_value_from_list(restricted_Fd)
 
-        # 4. 组合复数幅值
+        # 4. Combine complex amplitudes
         w = cm.exp(1j * pi / 4)
         amplitude = (val_a * w ** 3 + val_b * w ** 2 + val_c * w + val_d) / pow(sqrt(2), self.k)
 
@@ -557,74 +557,11 @@ class BDDCombSim:
                 break
         return target_list
 
-    # def get_value(self, bdd):
-    #     m = ceil(log2(self.r)) + 2  # The number of index Boolean variables
-    #     bool_list = [self.BDD.false, self.BDD.true]
-    #     binary_list = []
-    #     for i in range(self.r):
-    #         tmp = dict()
-    #         for j in range(2, m):
-    #             tmp['x%d' % j] = bool_list[(i >> (j - 2)) & 1]
-    #         flag = self.BDD.let(tmp, bdd)
-    #         if flag == self.BDD.true:
-    #             binary_list.append(1)
-    #         else:
-    #             binary_list.append(0)
-    #     if binary_list[-1] == 0:
-    #         return sum([(1 << i) if binary_list[i] == 1 else 0 for i in range(len(binary_list) - 1)])
-    #     else:
-    #         return -sum([(1 << i) if binary_list[i] == 0 else 0 for i in range(len(binary_list) - 1)]) - 1
-        
-    # def get_prob(self, target_list, result_list):
-    #     """
-    #     优化后的概率计算：先对分量 BDD 进行约束，再计算幅值。
-    #     避免构建巨大的 get_total_bdd。
-    #     """
-    #     # 1. 处理 target_list 和 result_list 的长度匹配
-    #     if len(target_list) > len(result_list):
-    #         target_list = target_list[:len(result_list)]
-        
-    #     # 2. 如果测量的不是所有量子比特，需要递归求和 (边缘概率)
-    #     # 注意：这一步在深层递归时仍然可能慢，但在全测量或大部分测量时会快很多
-    #     if len(target_list) < self.n:
-    #         next_list = self.get_next_list(target_list)
-    #         # 递归分支：分别计算测量为0和1的概率并相加
-    #         return self.get_prob(next_list, result_list + [0]) + \
-    #                self.get_prob(next_list, result_list + [1])
-
-    #     # 3. 构造约束字典 (Restriction Dictionary)
-    #     # 将测量结果转化为 BDD 的 let 字典
-    #     bool_list = [self.BDD.false, self.BDD.true]
-    #     constraint_dict = {}
-    #     for i in range(len(target_list)):
-    #         constraint_dict['q%d' % target_list[i]] = bool_list[result_list[i]]
-
-    #     # 4. 【关键优化步骤】：先对 Fa, Fb, Fc, Fd 进行约束 (Let)
-    #     # 这会使得 BDD 规模急剧减小，甚至变成常数节点
-    #     restricted_Fa = [self.BDD.let(constraint_dict, f) for f in self.Fa]
-    #     restricted_Fb = [self.BDD.let(constraint_dict, f) for f in self.Fb]
-    #     restricted_Fc = [self.BDD.let(constraint_dict, f) for f in self.Fc]
-    #     restricted_Fd = [self.BDD.let(constraint_dict, f) for f in self.Fd]
-
-    #     # 5. 基于约束后的 BDD 计算复数幅值
-    #     # 我们不再需要构建完整的 get_total_bdd，而是直接计算这四个分量的加权和
-        
-    #     # 计算四个分量的整数值
-    #     val_a = self._get_value_from_list(restricted_Fa)
-    #     val_b = self._get_value_from_list(restricted_Fb)
-    #     val_c = self._get_value_from_list(restricted_Fc)
-    #     val_d = self._get_value_from_list(restricted_Fd)
-
-    #     # 6. 组合复数幅值
-    #     w = cm.exp(1j * pi / 4)
-    #     amplitude = (val_a * w ** 3 + val_b * w ** 2 + val_c * w + val_d) / pow(sqrt(2), self.k)
-        
-    #     return abs(amplitude) ** 2
     def _get_value_from_assignment(self, bdd_list, assignment):
         """
-        辅助函数：给定一个具体的变量赋值 (assignment)，计算 bdd_list 代表的整数值。
+        Helper function: Given a specific variable assignment, calculate the integer value represented by bdd_list.
         """
-        # 计算符号位
+        # Calculate sign bit
         is_negative = (self.BDD.let(assignment, bdd_list[-1]) == self.BDD.true)
         
         final_val = 0
@@ -632,7 +569,7 @@ class BDDCombSim:
         
         if not is_negative:
             for i in range(limit):
-                # 对每一位 BDD 应用赋值，看结果是 True 还是 False
+                # Apply assignment to each BDD bit to check if result is True or False
                 if self.BDD.let(assignment, bdd_list[i]) == self.BDD.true:
                     final_val += (1 << i)
             return final_val
@@ -641,76 +578,14 @@ class BDDCombSim:
                 if self.BDD.let(assignment, bdd_list[i]) == self.BDD.false:
                     final_val += (1 << i)
             return -final_val - 1
-
-    # ----------------- 终极优化版 get_prob -----------------
-
-    # def get_prob(self, target_list, result_list):
-    #     """
-    #     通用型概率计算：使用符号化计数 (Symbolic Counting)。
-    #     既适用于稀疏态 (Random Walk)，也适用于稠密态 (Grover)。
-    #     不再依赖路径枚举，而是直接计算 BDD 图的加权节点数。
-    #     """
-    #     # 1. 构造约束
-    #     bool_list = [self.BDD.false, self.BDD.true]
-    #     constraint_dict = {}
-    #     for t, r in zip(target_list, result_list):
-    #         constraint_dict['q%d' % t] = bool_list[r]
-
-    #     # 2. 施加约束 (Let) - 这一步极快
-    #     res_Fa = [self.BDD.let(constraint_dict, f) for f in self.Fa]
-    #     res_Fb = [self.BDD.let(constraint_dict, f) for f in self.Fb]
-    #     res_Fc = [self.BDD.let(constraint_dict, f) for f in self.Fc]
-    #     res_Fd = [self.BDD.let(constraint_dict, f) for f in self.Fd]
-
-    #     # 3. 确定需要计数的变量集合 (未测量的量子比特)
-    #     all_qubits = set(range(self.n))
-    #     measured_qubits = set(target_list)
-    #     unmeasured_indices = list(all_qubits - measured_qubits)
-    #     # 注意：dd 的 count 需要知道变量总数或具体的变量集
-    #     # 这里我们只关心未测量的变量，它们构成了剩余的希尔伯特空间
-    #     n_vars = len(unmeasured_indices) 
-        
-    #     # 如果所有比特都被测量了，直接计算单值
-    #     if n_vars == 0:
-    #         val_a = self._get_value_from_list(res_Fa)
-    #         val_b = self._get_value_from_list(res_Fb)
-    #         val_c = self._get_value_from_list(res_Fc)
-    #         val_d = self._get_value_from_list(res_Fd)
-    #         w = cm.exp(1j * pi / 4)
-    #         amp = (val_a * w ** 3 + val_b * w ** 2 + val_c * w + val_d) / pow(sqrt(2), self.k)
-    #         return abs(amp) ** 2
-
-    #     # 4. 核心：符号化计算模长平方
-    #     # 我们需要计算 sum(|Amp|^2) over all x
-    #     # Amp = (A*w^3 + B*w^2 + C*w + D) / sqrt(2)^k
-    #     # |Amp|^2 = A^2 + B^2 + C^2 + D^2 + sqrt(2)*(AB + BC + CD - AD)
-    #     # (注：AC 和 BD 项系数为 0)
-        
-    #     # 计算各项的内积 (Inner Product)
-    #     # dot(A, A) 表示 sum(A(x)^2)
-    #     aa = self._symbolic_inner_product(res_Fa, res_Fa, n_vars)
-    #     bb = self._symbolic_inner_product(res_Fb, res_Fb, n_vars)
-    #     cc = self._symbolic_inner_product(res_Fc, res_Fc, n_vars)
-    #     dd = self._symbolic_inner_product(res_Fd, res_Fd, n_vars)
-        
-    #     ab = self._symbolic_inner_product(res_Fa, res_Fb, n_vars)
-    #     bc = self._symbolic_inner_product(res_Fb, res_Fc, n_vars)
-    #     cd = self._symbolic_inner_product(res_Fc, res_Fd, n_vars)
-    #     ad = self._symbolic_inner_product(res_Fa, res_Fd, n_vars)
-
-    #     # 组合结果
-    #     # sum_sq = A^2 + B^2 + C^2 + D^2 + sqrt(2)*(AB + BC + CD - AD)
-    #     total_sum = aa + bb + cc + dd + sqrt(2) * (ab + bc + cd - ad)
-        
-    #     return total_sum / (pow(2, self.k))
     
     def get_prob(self, target_list, result_list):
         """
-        旗舰版概率计算：支持 256+ 量子比特。
-        1. 使用整数平方判别法进行【精确零检测】，彻底消除噪声。
-        2. 使用 Decimal 进行【高精度计算】，保留 10^-78 级别的微小概率。
+        Flagship Probability Calculation: Supports 256+ qubits.
+        1. Uses Integer Square Discrimination for [Exact Zero Check] to eliminate noise.
+        2. Uses Decimal for [High Precision Calculation] to preserve tiny probabilities around 10^-78.
         """
-        # 1. 构造约束 & 2. 施加约束 (保持不变)
+        # 1. Construct constraints & 2. Apply constraints (unchanged)
         bool_list = [self.BDD.false, self.BDD.true]
         constraint_dict = {}
         for t, r in zip(target_list, result_list):
@@ -721,14 +596,14 @@ class BDDCombSim:
         res_Fc = [self.BDD.let(constraint_dict, f) for f in self.Fc]
         res_Fd = [self.BDD.let(constraint_dict, f) for f in self.Fd]
 
-        # 3. 确定未测量的变量 (保持不变)
+        # 3. Determine unmeasured variables (unchanged)
         all_qubits = set(range(self.n))
         measured_qubits = set(target_list)
         unmeasured_indices = list(all_qubits - measured_qubits)
         n_vars = len(unmeasured_indices) 
         
-        # 4. 符号化计算模长平方的各个项 (保持不变)
-        # 这里返回的都是 Python 的大整数，精度无限，不会溢出
+        # 4. Symbolically calculate terms for modulus squared (unchanged)
+        # Returns Python large integers, infinite precision, no overflow
         aa = self._symbolic_inner_product(res_Fa, res_Fa, n_vars)
         bb = self._symbolic_inner_product(res_Fb, res_Fb, n_vars)
         cc = self._symbolic_inner_product(res_Fc, res_Fc, n_vars)
@@ -739,121 +614,63 @@ class BDDCombSim:
         cd = self._symbolic_inner_product(res_Fc, res_Fd, n_vars)
         ad = self._symbolic_inner_product(res_Fa, res_Fd, n_vars)
 
-        # 5. 组合结果
+        # 5. Combine results
         # Total = (term_int + sqrt(2) * term_sqrt) / 2^k
         term_int = aa + bb + cc + dd
         term_sqrt = ab + bc + cd - ad
         
         # =========================================================
-        # 核心改进 A：精确零检测 (Exact Zero Check)
+        # Core Improvement A: Exact Zero Check
         # =========================================================
-        # 我们想知道 term_int + sqrt(2)*term_sqrt 是否严格等于 0
-        # 即判断 term_int 是否等于 -sqrt(2)*term_sqrt
-        # 两边平方： term_int^2 == 2 * term_sqrt^2
-        # 这是一个纯整数比较，没有任何误差！
+        # We want to know if term_int + sqrt(2)*term_sqrt is strictly 0.
+        # i.e., check if term_int equals -sqrt(2)*term_sqrt
+        # Square both sides: term_int^2 == 2 * term_sqrt^2
+        # This is a pure integer comparison, zero error!
         
         is_zero = False
         if term_int == 0 and term_sqrt == 0:
             is_zero = True
         elif (term_int * term_sqrt < 0) and (term_int**2 == 2 * (term_sqrt**2)):
-            # 如果符号相反，且平方满足2倍关系，说明是精确抵消
+            # If signs are opposite and square satisfies 2x relationship, it's exact cancellation
             is_zero = True
             
         if is_zero:
             return 0.0
 
         # =========================================================
-        # 核心改进 B：高精度计算 (Decimal)
+        # Core Improvement B: High Precision Calculation (Decimal)
         # =========================================================
-        # 如果不是 0，我们需要计算它的值。
-        # 对于 256 比特，结果约为 1e-78。
-        # 普通 float 的精度不足以在 term_int 和 term_sqrt 很大时保留这个微小值。
+        # If not 0, we need to calculate its value.
+        # For 256 qubits, result is around 1e-78.
+        # Standard float precision is insufficient when term_int and term_sqrt are large.
         
-        # 使用 Decimal 计算 sqrt(2)
+        # Use Decimal to calculate sqrt(2)
         sqrt2_dec = Decimal(2).sqrt()
         
-        # 分子
+        # Numerator
         numerator = Decimal(term_int) + sqrt2_dec * Decimal(term_sqrt)
         
-        # 分母 2^k
-        # 注意：self.k 对于 256 比特可能很大，直接用 1<<self.k 生成大整数
+        # Denominator 2^k
+        # Note: self.k can be large for 256 qubits, use 1<<self.k for large integer
         divisor = Decimal(1 << self.k)
         
-        # 高精度除法
+        # High precision division
         total_prob_dec = numerator / divisor
         
-        # 最后转回 float 返回给用户
-        # Python 的 float 可以表示 1e-308，所以 1e-78 是安全的
-        # 只要计算过程用 Decimal 保证了精度，结果就是准确的
+        # Convert back to float for user
+        # Python float can represent 1e-308, so 1e-78 is safe
+        # As long as calculation uses Decimal for precision, result is accurate
         return abs(float(total_prob_dec))
-    
-    # def get_prob(self, target_list, result_list):
-    #     """
-    #     通用型概率计算：使用符号化计数 + Fraction 高精度除法。
-    #     修复了 Grover 算法中归一化因子过大导致的 OverflowError。
-    #     """
-    #     # 1. 构造约束
-    #     bool_list = [self.BDD.false, self.BDD.true]
-    #     constraint_dict = {}
-    #     for t, r in zip(target_list, result_list):
-    #         constraint_dict['q%d' % t] = bool_list[r]
-
-    #     # 2. 施加约束 (Let)
-    #     res_Fa = [self.BDD.let(constraint_dict, f) for f in self.Fa]
-    #     res_Fb = [self.BDD.let(constraint_dict, f) for f in self.Fb]
-    #     res_Fc = [self.BDD.let(constraint_dict, f) for f in self.Fc]
-    #     res_Fd = [self.BDD.let(constraint_dict, f) for f in self.Fd]
-
-    #     # 3. 确定未测量的变量
-    #     all_qubits = set(range(self.n))
-    #     measured_qubits = set(target_list)
-    #     unmeasured_indices = list(all_qubits - measured_qubits)
-    #     n_vars = len(unmeasured_indices) 
-        
-    #     # 4. 符号化计算模长平方的各个项
-    #     aa = self._symbolic_inner_product(res_Fa, res_Fa, n_vars)
-    #     bb = self._symbolic_inner_product(res_Fb, res_Fb, n_vars)
-    #     cc = self._symbolic_inner_product(res_Fc, res_Fc, n_vars)
-    #     dd = self._symbolic_inner_product(res_Fd, res_Fd, n_vars)
-        
-    #     ab = self._symbolic_inner_product(res_Fa, res_Fb, n_vars)
-    #     bc = self._symbolic_inner_product(res_Fb, res_Fc, n_vars)
-    #     cd = self._symbolic_inner_product(res_Fc, res_Fd, n_vars)
-    #     ad = self._symbolic_inner_product(res_Fa, res_Fd, n_vars)
-
-    #     # 5. 组合结果 (关键修复步骤)
-    #     # 公式: Sum = (aa+bb+cc+dd) + sqrt(2)*(ab+bc+cd-ad)
-    #     # 我们需要计算 Sum / 2^k
-        
-    #     term_int = aa + bb + cc + dd
-    #     term_sqrt = ab + bc + cd - ad
-    #     divisor = 1 << self.k  # 使用位移计算 2^k，比 pow 更快且保持整数
-        
-    #     # 使用 Fraction 进行安全的整数除法
-    #     # Fraction(大整数, 大整数) 会自动约分，结果是一个有理数对象
-    #     # 将其转为 float 时，因为结果是概率(<=1)，所以绝对不会溢出
-    #     # 【修复点】强制转换为 int，确保传入 Fraction 的是整数
-    #     prob_int_part = float(Fraction(int(term_int), int(divisor)))
-    #     prob_sqrt_part = float(Fraction(int(term_sqrt), int(divisor)))
-        
-    #     total_prob = prob_int_part + sqrt(2) * prob_sqrt_part
-        
-    #     # 【新增】数值清洗：如果概率极小，视为 0
-    #     # 1e-15 是双精度浮点数的安全误差界限
-    #     if abs(total_prob) < 1e-15:
-    #         return 0.0
-        
-    #     return abs(total_prob) # 确保非负
 
     def _symbolic_inner_product(self, list1, list2, n_vars):
         """
-        计算两个整数向量 BDD 的内积。
-        修复 NaN 问题：不再向 count 传递 nvars，而是手动计算缩放因子。
+        Calculates inner product of two integer vector BDDs.
+        Fix NaN issue: Do not pass nvars to count, manually calculate scaling factor.
         """
         total = 0
         r = self.r
         
-        # 预计算权重
+        # Pre-compute weights
         weights = []
         for i in range(r - 1):
             weights.append(1 << i)
@@ -863,98 +680,62 @@ class BDDCombSim:
             for j in range(r):
                 and_node = list1[i] & list2[j]
                 
-                # 如果交集为空，跳过
+                # If intersection is empty, skip
                 if and_node == self.BDD.false:
                     continue
                 
-                # 1. 获取原始计数 (Raw Count)
-                # 不传 nvars，让它只计算 BDD 实际依赖变量的满足路径数
-                # count 返回 float，必须转 int
+                # 1. Get Raw Count
+                # Do not pass nvars, let it count satisfied paths for variables actually in BDD
+                # count returns float, must convert to int
                 raw_count = int(self.BDD.count(and_node))
                 
-                # 2. 获取支撑集大小 (Support Size)
-                # support 返回该节点实际依赖的变量集合
+                # 2. Get Support Size
+                # support returns set of variables actually depended on by the node
                 supp = self.BDD.support(and_node)
                 len_supp = len(supp)
                 
-                # 3. 手动计算缩放因子 (Scaling)
-                # n_vars 是我们逻辑上剩余的自由量子比特数
-                # diff 是 BDD 没用到但实际存在的自由比特数，每一个贡献 2 倍的路径
+                # 3. Manually Calculate Scaling Factor
+                # n_vars is the logical number of remaining free qubits
+                # diff is the number of free qubits existing but not used in BDD, each contributes 2x paths
                 diff = n_vars - len_supp
                 
-                # 防御性处理：理论上 diff >= 0。如果 < 0 说明逻辑有误，保持原值
+                # Defensive coding: theoretically diff >= 0. If < 0, logic error, keep original.
                 shift = diff if diff > 0 else 0
                 
-                # 使用位移操作相当于乘以 2^shift
+                # Bit shift equivalent to multiplying by 2^shift
                 real_count = raw_count << shift
                 
-                # 累加
+                # Accumulate
                 total += weights[i] * weights[j] * real_count
                     
         return total
-    # def _symbolic_inner_product(self, list1, list2, n_vars):
-    #     """
-    #     计算两个整数向量 BDD 的内积：sum_{x} (Val1(x) * Val2(x))
-    #     利用 count 函数避免遍历状态。
-    #     """
-    #     total = 0
-    #     r = self.r
-        
-    #     # 预计算每一位的权重
-    #     # 标准补码权重：第 i 位是 2^i，最高位(符号位)是 -2^(r-1)
-    #     weights = []
-    #     for i in range(r - 1):
-    #         weights.append(1 << i)
-    #     weights.append(-(1 << (r - 1))) # 符号位权重
-
-    #     # 双重循环累加： sum( w_i * w_j * count(bit_i & bit_j) )
-    #     # 这里的 count 是 C++ 级别的操作，非常快
-    #     for i in range(r):
-    #         for j in range(r):
-    #             # 两个 BDD 的逻辑与
-    #             and_node = list1[i] & list2[j]
-                
-    #             # 如果交集为 False，跳过
-    #             if and_node == self.BDD.false:
-    #                 continue
-                
-    #             # 统计满足条件的路径数
-    #             # count 返回的是满足该 BDD 为 True 的赋值数量
-    #             c = self.BDD.count(and_node, nvars=n_vars)
-                
-    #             if c > 0:
-    #                 total += weights[i] * weights[j] * c
-                    
-    #     return total
-
+  
     def _get_value_from_list(self, bdd_list):
         """
-        【新增辅助函数】
-        从已经坍缩（被let约束过）的 BDD 列表中直接计算整数值。
-        替代了原有的 get_value 函数，不需要引入 x 变量，速度极快。
+        [New Helper Function]
+        Calculates integer value directly from collapsed (let-constrained) BDD list.
+        Replaces original get_value function, no need to introduce x variables, extremely fast.
         """
-        # 1. 判断符号位 (最高位)
-        # 在你的逻辑中，最后一位是符号位：True代表负数，False代表正数
+        # 1. Determine sign bit (highest bit)
+        # In logic, last bit is sign: True for negative, False for positive
         is_negative = (bdd_list[-1] == self.BDD.true)
 
         final_val = 0
         
-        # 2. 根据正负逻辑还原数值
+        # 2. Restore value based on sign logic
         if not is_negative:
-            # 正数逻辑：直接累加为 True 的位
+            # Positive number: accumulate bits that are True
             for i in range(self.r - 1):
                 if bdd_list[i] == self.BDD.true:
                     final_val += (1 << i)
             return final_val
         else:
-            # 负数逻辑：累加为 False (0) 的位，最后取反再减1
-            # 对应原代码：-sum([(1 << i) if binary_list[i] == 0 ...]) - 1
+            # Negative number: accumulate bits that are False (0), then invert and subtract 1
+            # Corresponds to: -sum([(1 << i) if binary_list[i] == 0 ...]) - 1
             for i in range(self.r - 1):
                 if bdd_list[i] == self.BDD.false: 
                     final_val += (1 << i)
             return -final_val - 1
-
-    # ----------------- 优化结束 -----------------
 
     def simplify_tail(self):
         if self.Fa[0] == self.BDD.false and self.Fb[0] == self.BDD.false and self.Fc[0] == self.BDD.false and self.Fd[

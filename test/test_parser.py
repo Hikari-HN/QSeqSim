@@ -54,17 +54,17 @@ if __name__ == "__main__":
         qc.measure(q[0], c[0])
         qc.measure(q[1], c[1])
 
-    # 结尾测量
+    # Final measurement
     qc.measure(q[2], c[0])
 
     # ==========================================
-    # 解析与模拟
+    # Parsing and Simulation
     # ==========================================
     print("\n[Step 1] Parsing Qiskit Circuit...")
     parser = QiskitParser(qc) 
 
-    # === 查看生成的 QASM ===
-    parser.to_qasm3() # 手动触发转换
+    # === View generated QASM ===
+    parser.to_qasm3() # Manually trigger conversion
     print("\n--- Generated OpenQASM 3 ---")
     print(parser.qasm_str)
     print("----------------------------\n")
@@ -84,16 +84,16 @@ if __name__ == "__main__":
             print()
 
         elif block.type == 'DQC':
-            # 更新：target_clbits 是列表
+            # Update: target_clbits is a list
             print(f"    -> Targets: c{block.target_clbits}")
             print(f"    -> Cases: {list(block.cases.keys())}")
         
         elif block.type == 'SQC':
-            # 更新：indices 是列表
+            # Update: indices is a list
             print(f"    -> Loop Flag: c{block.loop_condition['indices']} == {block.loop_condition['value']}")
 
     # ==========================================
-    # 模拟 (Preset Mode)
+    # Simulation (Preset Mode)
     # ==========================================
     print("\n[Step 2] Simulating (Sample Mode)...")
     
