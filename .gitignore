@@ -217,3 +217,4 @@ dd-0.6.0/
 # macOS 系统文件
 .DS_Store
 *.tex
+DQreuse/
