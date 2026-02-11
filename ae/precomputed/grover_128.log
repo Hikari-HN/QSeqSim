@@ -1,0 +1,23 @@
+[2025-12-04 13:50:11] Grover experiment log (n=128) initialized
+[2025-12-04 13:50:11] ========== Starting experiment: n=128, it=1000 ==========
+[2025-12-04 13:50:11] Iteration 1 - Probability: 0.5, Cumulative time: 0.2200 seconds
+[2025-12-04 13:50:14] Iteration 2 - Probability: 1.1754943508222875e-38, Cumulative time: 3.1152 seconds
+[2025-12-04 13:50:27] Iteration 3 - Probability: 0.125, Cumulative time: 16.2929 seconds
+[2025-12-04 13:50:51] Iteration 4 - Probability: 1.1754943508222875e-38, Cumulative time: 40.8739 seconds
+[2025-12-04 13:51:29] Iteration 5 - Probability: 0.03125, Cumulative time: 78.3792 seconds
+[2025-12-04 13:52:26] Iteration 6 - Probability: 5.877471754111438e-39, Cumulative time: 135.1081 seconds
+[2025-12-04 13:53:51] Iteration 7 - Probability: 0.0078125, Cumulative time: 220.9423 seconds
+[2025-12-04 13:56:02] Iteration 8 - Probability: 2.938735877055719e-39, Cumulative time: 351.2518 seconds
+[2025-12-04 13:58:07] Iteration 9 - Probability: 0.001953125, Cumulative time: 476.3080 seconds
+[2025-12-04 14:00:33] Iteration 10 - Probability: 1.1020259538958945e-39, Cumulative time: 622.6986 seconds
+[2025-12-04 14:03:25] Iteration 11 - Probability: 0.00048828125, Cumulative time: 794.9392 seconds
+[2025-12-04 14:06:21] Iteration 12 - Probability: 4.5917748078995606e-40, Cumulative time: 970.0730 seconds
+[2025-12-04 14:09:11] Iteration 13 - Probability: 0.0001220703125, Cumulative time: 1140.0159 seconds
+[2025-12-04 14:13:30] Iteration 14 - Probability: 1.3775324423698682e-40, Cumulative time: 1399.4544 seconds
+[2025-12-04 14:18:31] Iteration 15 - Probability: 3.0517578125e-05, Cumulative time: 1700.0213 seconds
+[2025-12-04 14:20:11] ❌ Runtime exceeds 1800 seconds, terminating current experiment
+[2025-12-04 14:20:11] ========== Experiment finished: n=128, it=1000 ==========
+[2025-12-04 14:20:11] Experiment status: timeout, Total runtime: 1800.0178 seconds
+[2025-12-04 14:20:11] ==================================================
+[2025-12-04 14:20:11] Grover experiment (n=128, it=1000) finished
+[2025-12-04 14:20:11] ==================================================

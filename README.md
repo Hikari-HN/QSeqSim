@@ -20,20 +20,57 @@ Building on this semantics, QSeqSim adopts a BDD-based symbolic representation a
 
 ## Installation
 
-### Prerequisites
+### Option A: Docker (recommended)
 
-- Python 3.8+
-- [CUDD](https://github.com/ivmai/cudd) (Required for the `dd` library)
-
-### Dependencies
-
-Install the required Python packages:
+The Docker image includes CUDD and a working `dd` build. This is the easiest way to get a reproducible environment.
 
 ```bash
-pip install qiskit openqasm3 dd
+docker build -t qseqsim-ae .
+docker run --rm -it qseqsim-ae:latest bash
 ```
 
-*Note: The `dd` package requires a C compiler and the CUDD library to be installed and configured properly for the C extensions to work.*
+### Option B: Native
+
+#### Prerequisites
+
+- Python 3.12 (tested)
+- A C/C++ toolchain (required by `dd`)
+
+The `dd` package depends on the CUDD library. The dd authors recommend building CUDD from source; we provide a helper script under `ae/scripts/install_dd_cudd.sh` that follows that approach.
+
+Reference: https://github.com/tulip-control/dd
+
+#### Dependencies
+
+Install CUDD (recommended method):
+
+```bash
+chmod +x ae/scripts/install_dd_cudd.sh
+./ae/scripts/install_dd_cudd.sh
+```
+
+Install Python packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+Note: `openqasm3[parser]` is required and already included in `requirements.txt`.
+
+Install `dd` after CUDD is available:
+
+```bash
+pip install dd
+```
+
+If `dd` was installed before CUDD, reinstall it after CUDD is available:
+
+```bash
+pip uninstall -y dd
+pip install dd
+```
+
+For a fully reproducible environment, use the Docker image described in the Artifact Evaluation section.
 
 ## Usage
 
@@ -48,21 +85,22 @@ from src.simulator import BDDSimulator
 
 # 1. Define Qiskit Circuit
 q = QuantumRegister(2, 'q')
-c = ClassicalRegister(1, 'c')
+c = ClassicalRegister(2, 'c')
 qc = QuantumCircuit(q, c)
 
 # Initialize qubits
 qc.h(q[0])
-qc.x(q[1])
+qc.cx(q[0], q[1])
 
-# Define a while loop: run until c[0] == 1
+# Define a while loop: run while c[0] == 0
 # Note: This is a conceptual example. Ensure your loop has a termination condition.
-with qc.while_loop((c, 0)):
+with qc.while_loop((c[0], 0)):
     qc.h(q[0])
+    qc.cx(q[0], q[1])
     qc.measure(q[0], c[0])
 
 # Final measurement
-qc.measure(q[1], c[0])
+qc.measure(q[1], c[1])
 
 # 2. Parse the Circuit
 print("Parsing circuit...")
@@ -120,6 +158,38 @@ To run the Grover search experiment:
 
 ```bash
 python exp/simulation/grover.py
+```
+
+## Documentation (User / Reuse / AE)
+
+- **User guide (library API, semantics, troubleshooting):** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+- **Reuse & extension guide (add benchmarks / add gates / testing):** [docs/REUSE.md](docs/REUSE.md)
+- **Environment & installation notes (Docker/native, CUDD + dd):** [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)
+- **Results format (CSV schemas):** [docs/RESULTS_FORMAT.md](docs/RESULTS_FORMAT.md)
+- **Runnable toy examples:** [examples/](examples/)
+- **Regression / toy tests:** [test/](test/)
+- **Artifact Evaluation (FM 2026):** [ae/README.md](ae/README.md)
+
+## Artifact Evaluation (FM 2026)
+
+This repository includes an AE package under `ae/` with scripts, frozen benchmarks, and detailed, step-by-step instructions.
+
+**Quick smoke test (recommended):**
+
+```bash
+chmod +x ae/scripts/run_smoke.sh
+./ae/scripts/run_smoke.sh
+```
+
+This runs small subsets of Tables 1–5 and writes CSV results under `ae/results/`.
+
+**Full AE instructions:** see [ae/README.md](ae/README.md) for Docker usage, full reproduction steps, expected outputs, and reuse guidance.
+
+**Docker build (optional):**
+
+```bash
+docker build -t qseqsim-ae .
+docker run --rm -it qseqsim-ae:latest bash
 ```
 
 ## License

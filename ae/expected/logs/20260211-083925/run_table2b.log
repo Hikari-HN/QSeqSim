@@ -1,0 +1,5 @@
+[Table2b] Grover n=16 report=[3, 10, 100, 150, 203] timeout=1800s
+[Table2b] Grover n=128 report=[2, 3, 6, 10, 15] timeout=1800s
+[Table2b] Grover n=256 report=[2, 3, 4, 5, 6] timeout=1800s
+
+[Table2b] Saved: /workspace/ae/results/table2b.csv

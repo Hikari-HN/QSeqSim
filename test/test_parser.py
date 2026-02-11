@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from src.parser import QiskitParser
 from src.simulator import BDDSimulator

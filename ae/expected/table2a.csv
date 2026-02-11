@@ -1,0 +1,16 @@
+benchmark,qubits,gates_per_iteration,iterations,time_seconds,status
+QRW,16,31,3,0.06525,success
+QRW,16,31,10,0.167021,success
+QRW,16,31,100,7.035992,success
+QRW,16,31,200,36.731207,success
+QRW,16,31,785,timeout,timeout_missing_iter
+QRW,128,255,3,0.763714,success
+QRW,128,255,10,3.093173,success
+QRW,128,255,100,275.439579,success
+QRW,128,255,200,1329.166368,success
+QRW,128,255,244,timeout,timeout_missing_iter
+QRW,1024,2047,3,294.008986,success
+QRW,1024,2047,5,590.389864,success
+QRW,1024,2047,8,1153.553656,success
+QRW,1024,2047,10,1485.710952,success
+QRW,1024,2047,13,timeout,timeout_missing_iter

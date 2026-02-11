@@ -1,0 +1,210 @@
+# Environment & Installation Notes (QSeqSim)
+
+This document describes recommended environments for running QSeqSim and provides detailed guidance for **native installation**, with a focus on installing the Python package **`dd`** with the **CUDD backend** (`dd.cudd`), which is the most common source of installation issues.
+
+Upstream reference for `dd` (official build notes and troubleshooting):
+- https://github.com/tulip-control/dd
+
+
+## 1. Recommended environment: Docker (reproducible)
+
+Docker is the recommended way to run QSeqSim for:
+- Artifact Evaluation (AE),
+- stable reproduction of experiments,
+- avoiding CUDD build/linker issues.
+
+### 1.1 Build and run
+
+From the repository root:
+
+```bash
+docker build -t qseqsim-ae .
+docker run --rm -it qseqsim-ae:latest bash
+```
+
+### 1.2 Quick sanity checks (inside container)
+```bash
+python examples/while_minimal.py
+python examples/branching_if_switch.py
+python test/test_parser.py
+```
+If these succeed, your environment is correct.
+
+## 2. Native installation (advanced / for development & reuse)
+Native installation is possible but **less robust** than Docker, mainly due to:
+
+- the need for a correct CUDD build,
+- linking `dd`’s C extensions against CUDD,
+- architecture mismatches (especially on macOS Apple Silicon).
+
+Supported platforms:
+- Python: **3.12** (tested)
+- OS: Linux or macOS recommended
+- Windows: not officially supported; consider WSL2
+
+## 3. What exactly needs to work (core requirement)
+QSeqSim imports CUDD-backed BDDs via:
+
+```python
+from dd import cudd as _bdd
+```
+
+So the environment must satisfy:
+
+1. `pip install dd` succeeds, and
+2. `python -c "import dd.cudd"` succeeds.
+
+If `dd.cudd` is missing, QSeqSim will not run.
+
+## 4. Native install path: use the provided script
+We provide a helper script from https://github.com/tulip-control/dd:
+
+- `ae/scripts/install_dd_cudd.sh`
+
+It builds and installs `dd` with `dd.cudd` enabled by forcing a **source build** and fetching CUDD during installation.
+
+### 4.1 Run the script
+From repository root (inside a venv is recommended):
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip setuptools wheel
+
+chmod +x ae/scripts/install_dd_cudd.sh
+./ae/scripts/install_dd_cudd.sh
+```
+
+### 4.2 What the script does (important for debugging)
+The script (as included in this repo) performs:
+
+1. `pip install dd`
+- to install build dependencies / ensure pip can resolve requirements
+
+2. `pip uninstall -y dd`
+- remove it so we can rebuild from source
+
+3. `pip download --no-deps dd --no-binary dd`
+- download the **source distribution** (dd-*.tar.gz)
+
+4. unpack sdist and set environment variables:
+- `DD_FETCH=1`
+fetch required third-party code (including CUDD) during build
+- `DD_CUDD=1`
+build the `dd.cudd` extension
+- `DD_CUDD_ZDD=1`
+build the `dd.cudd_zdd` extension
+
+5. `pip install . -vvv --use-pep517 --no-build-isolation`
+- build with verbose output and without build isolation (so toolchains/env are visible)
+
+6. verify installation with: `python -c 'import dd.cudd'`
+
+If you encounter errors, the -vvv logs usually show the missing header/library or compiler issue.
+
+Note: Installing `dd` before CUDD exists may produce a non-CUDD installation.
+Always run the script (or reinstall) to ensure `dd.cudd` is present.
+
+## 5. Verifying the installation
+### 5.1 Verify `dd.cudd`
+```bash
+python -c "import dd.cudd; print('dd.cudd OK')"
+```
+### 5.2 Run QSeqSim toy tests
+From repository root:
+
+```bash
+python test/test_parser.py
+python test/test_kernel.py
+```
+
+### 5.3 Minimal BDD check (optional)
+```bash
+python - <<'PY'
+from dd import cudd
+bdd = cudd.BDD()
+bdd.declare('x', 'y')
+u = bdd.add_expr(r'x /\ y')
+s = bdd.to_expr(u)
+print(s)
+PY
+```
+
+## 6. Common problems & fixes
+### 6.1 `ImportError: cannot import name 'cudd' from 'dd'`
+Cause:
+
+- `dd` was installed without CUDD extensions.
+
+Fix (force a source rebuild with CUDD):
+
+```bash
+pip uninstall -y dd
+./ae/scripts/install_dd_cudd.sh
+```
+
+### 6.2 Build fails: missing compiler / Python headers
+Linux:
+
+- ensure you have build-essential and Python dev headers.
+Example (Debian/Ubuntu):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential python3-dev
+```
+macOS:
+
+ensure command line tools are installed:
+```bash
+xcode-select --install
+```
+
+Then rerun:
+
+```bash
+./ae/scripts/install_dd_cudd.sh
+```
+
+### 6.3 macOS: architecture mismatch (arm64 vs x86_64)
+Symptoms:
+
+- linker errors, “wrong architecture”, or `.so` cannot be loaded.
+
+Check:
+
+```bash
+python -c "import platform; print(platform.machine())"
+```
+
+Fix:
+
+- ensure Python and compiled extensions are the same architecture.
+- if in doubt, prefer Docker.
+
+### 6.4 Offline / restricted network environments
+The script uses `DD_FETCH=1`, which may fetch dependencies during build.
+If network access is restricted, use Docker or ensure dependencies are vendored in advance.
+
+This repository includes:
+
+- `third_party/dd-0.6.0.tar.gz`
+
+You can try:
+
+```bash
+pip install third_party/dd-0.6.0.tar.gz
+```
+
+But **you still need** `dd.cudd`; if the build cannot fetch CUDD, prefer Docker for evaluation.
+
+## 7. Reproducibility settings (sampling)
+Some experiments (e.g., AE Table 3) use `mode="sample"` (random branching).
+If supported by the runner, fix randomness via:
+
+```bash
+export QSEQSIM_RNG_SEED=123
+```
+
+See [ae/README.md](../ae/README.md) for AE-specific reproducibility strategy (frozen circuits + SHA256 manifest).
+

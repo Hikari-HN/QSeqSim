@@ -188,7 +188,12 @@ class QiskitParser:
         fixed_qasm = re.sub(pattern, r'for int \1 in', self.qasm_str)
         
         try:
-            program = openqasm3.parse(fixed_qasm)
+            # Parse OpenQASM 3 program using a version-tolerant entry point.
+            if hasattr(openqasm3, "parse"):
+                program = openqasm3.parse(fixed_qasm)
+            else:
+                from openqasm3 import parser as _parser
+                program = _parser.parse(fixed_qasm)
             self._scan_global_topology(program)
         except Exception as e:
             print(f"Error parsing QASM string: {e}")
@@ -348,45 +353,6 @@ class QiskitParser:
         flush_buffer()
         return blocks
 
-    # def _parse_gate(self, gate_node: ast.QuantumGate) -> List[GateOp]:
-    #     raw_name = gate_node.name.name.lower()
-    #     if raw_name == 'id': return [] 
-        
-    #     params = [self._eval_expr(arg) for arg in gate_node.arguments]
-    #     qubits: List[int] = []
-    #     for q in gate_node.qubits:
-    #         reg_name, local_idx = self._extract_name_and_index(q)
-    #         if reg_name:
-    #             qubits.append(self._resolve_q_index(reg_name, local_idx))
-
-    #     mapped_name = raw_name
-    #     mapped_params: List[float] = []
-
-    #     if raw_name == 'rx':
-    #         theta = params[0]
-    #         if math.isclose(abs(theta), math.pi/2): mapped_name = 'x2p'
-    #         else: raise ValueError(f"Unsupported Rx angle: {theta}. Only pi/2 supported.")
-    #     elif raw_name == 'ry':
-    #         theta = params[0]
-    #         if math.isclose(abs(theta), math.pi/2): mapped_name = 'y2p'
-    #         else: raise ValueError(f"Unsupported Ry angle: {theta}. Only pi/2 supported.")
-    #     elif raw_name in ['rz', 'p']:
-    #         theta = params[0] % (2 * math.pi)
-    #         if math.isclose(theta, math.pi/2): mapped_name = 's'
-    #         elif math.isclose(theta, 3*math.pi/2): mapped_name = 'sdg'
-    #         elif math.isclose(theta, math.pi/4): mapped_name = 't'
-    #         elif math.isclose(theta, 7*math.pi/4): mapped_name = 'tdg'
-    #         elif math.isclose(theta, math.pi): mapped_name = 'z'
-    #         else: raise ValueError(f"Unsupported Rz/Phase angle: {theta}. Only pi/2, pi/4 multiples supported.")
-
-    #     if mapped_name == 'cnot': mapped_name = 'cx'
-    #     elif mapped_name == 'toffoli': mapped_name = 'ccx'
-    #     elif mapped_name == 'fredkin': mapped_name = 'cswap'
-
-    #     if mapped_name not in self.SUPPORTED_GATES:
-    #         raise ValueError(f"Unsupported Gate: '{raw_name}' (mapped to '{mapped_name}'). Kernel only supports Clifford+T.")
-
-    #     return [GateOp(mapped_name, qubits, mapped_params)]
     def _parse_gate(self, gate_node: ast.QuantumGate) -> List[GateOp]:
         raw_name = gate_node.name.name.lower()
         if raw_name == 'id': return [] 

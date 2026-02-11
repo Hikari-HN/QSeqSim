@@ -1,0 +1,23 @@
+# Do not ship non-submitted directory
+DQreuse/
+
+# Common large / irrelevant stuff
+.git/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.DS_Store
+.buildx-cache/
+**/.buildx-cache/
+
+# Local environments
+.venv/
+venv/
+.env
+
+# Outputs (optional: keep empty ae/results directory in repo)
+ae/results/*
+ae/results/.gitkeep
+exp/simulation/data/*
+

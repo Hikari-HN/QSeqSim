@@ -1,0 +1,5 @@
+[Table2a] QRW n=16 report=[3, 10, 100, 200, 785] timeout=1800s
+[Table2a] QRW n=128 report=[3, 10, 100, 200, 244] timeout=1800s
+[Table2a] QRW n=1024 report=[3, 5, 8, 10, 13] timeout=1800s
+
+[Table2a] Saved: /workspace/ae/results/table2a.csv

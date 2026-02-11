@@ -1,0 +1,10 @@
+astutils==0.0.6
+Cython==3.2.4
+GitPython==3.1.46
+networkx==3.6
+numpy==2.4.2
+openqasm3[parser]==1.0.1
+ply==3.10
+pytest==9.0.2
+qiskit==2.2.3
+setuptools==80.9.0

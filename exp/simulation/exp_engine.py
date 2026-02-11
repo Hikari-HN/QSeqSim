@@ -8,6 +8,11 @@ import sys
 import time
 from pathlib import Path
 from typing import Optional, Dict, List
+import os
+import random
+_seed = os.environ.get("QSEQSIM_RNG_SEED")
+if _seed is not None:
+    random.seed(int(_seed))
 
 # Ensure src directory is importable
 current_dir = Path(__file__).parent.resolve()

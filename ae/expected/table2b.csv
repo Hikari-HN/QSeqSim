@@ -1,0 +1,16 @@
+benchmark,qubits,gates_per_iteration,iterations,time_seconds,status
+Grover,16,81,3,0.218489,success
+Grover,16,81,10,2.610014,success
+Grover,16,81,100,372.516983,success
+Grover,16,81,150,952.561577,success
+Grover,16,81,203,timeout,timeout_missing_iter
+Grover,128,641,2,3.243476,success
+Grover,128,641,3,17.826725,success
+Grover,128,641,6,149.743052,success
+Grover,128,641,10,704.298319,success
+Grover,128,641,15,timeout,timeout_missing_iter
+Grover,256,1281,2,291.565613,success
+Grover,256,1281,3,607.94724,success
+Grover,256,1281,4,991.133454,success
+Grover,256,1281,5,1397.167806,success
+Grover,256,1281,6,timeout,timeout_missing_iter

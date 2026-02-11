@@ -1,0 +1,21 @@
+CMD: /usr/local/bin/python /workspace/exp/simulation/grover.py --n 16 --max-iters 203 --report-iters 3,10,100,150,203 --timeout 1800
+
+
+========== Starting experiment: n=16, it=203 ==========
+[REPORT] n=16 iter=3 time=0.218489
+[REPORT] n=16 iter=10 time=2.610014
+[REPORT] n=16 iter=100 time=372.516983
+[REPORT] n=16 iter=150 time=952.561577
+
+❌ Runtime exceeds 1800 seconds, terminating current experiment
+
+========== Experiment finished: n=16, it=203 ==========
+Experiment status: timeout, Total runtime: 1800.0065 seconds
+
+----------------------------------------
+Preparing to execute next experiment configuration...
+----------------------------------------
+
+========== All experiments completed, summary results ==========
+n=16, it=203 - Status: timeout, Total runtime: 1800.0065 seconds
+

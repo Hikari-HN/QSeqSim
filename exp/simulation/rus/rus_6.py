@@ -48,6 +48,7 @@ with circ.while_loop((c, 0)):
     rus_trial(circ, q[0], q[1], c[0])
 
 # Simulator Configuration by User
+import os
 sim_mode = 'preset' 
-ITER_TIME = 100
+ITER_TIME = int(os.environ.get("ITER_TIME", "100"))
 preset_values = {0: [0] * (ITER_TIME - 1) + [1]} 

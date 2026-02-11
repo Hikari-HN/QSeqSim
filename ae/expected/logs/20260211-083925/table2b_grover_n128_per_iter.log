@@ -1,0 +1,22 @@
+[2026-02-11 10:44:18] Grover experiment log (n=128) initialized
+[2026-02-11 10:44:18] ========== Starting experiment: n=128, it=15 ==========
+[2026-02-11 10:44:18] Iteration 1 - Probability: 0.5, Cumulative time: 0.2650 seconds
+[2026-02-11 10:44:21] Iteration 2 - Probability: 1.1754943508222875e-38, Cumulative time: 3.2435 seconds
+[2026-02-11 10:44:36] Iteration 3 - Probability: 0.125, Cumulative time: 17.8267 seconds
+[2026-02-11 10:45:03] Iteration 4 - Probability: 1.1754943508222875e-38, Cumulative time: 44.5463 seconds
+[2026-02-11 10:45:47] Iteration 5 - Probability: 0.03125, Cumulative time: 88.5120 seconds
+[2026-02-11 10:46:48] Iteration 6 - Probability: 5.877471754111438e-39, Cumulative time: 149.7431 seconds
+[2026-02-11 10:48:30] Iteration 7 - Probability: 0.0078125, Cumulative time: 252.2452 seconds
+[2026-02-11 10:50:51] Iteration 8 - Probability: 2.938735877055719e-39, Cumulative time: 393.1740 seconds
+[2026-02-11 10:53:18] Iteration 9 - Probability: 0.001953125, Cumulative time: 540.2024 seconds
+[2026-02-11 10:56:03] Iteration 10 - Probability: 1.1020259538958945e-39, Cumulative time: 704.2983 seconds
+[2026-02-11 10:59:22] Iteration 11 - Probability: 0.00048828125, Cumulative time: 903.9362 seconds
+[2026-02-11 11:02:48] Iteration 12 - Probability: 4.5917748078995606e-40, Cumulative time: 1109.5077 seconds
+[2026-02-11 11:06:13] Iteration 13 - Probability: 0.0001220703125, Cumulative time: 1314.2978 seconds
+[2026-02-11 11:12:01] Iteration 14 - Probability: 1.3775324423698682e-40, Cumulative time: 1662.9345 seconds
+[2026-02-11 11:14:18] ❌ Runtime exceeds 1800 seconds, terminating current experiment
+[2026-02-11 11:14:18] ========== Experiment finished: n=128, it=15 ==========
+[2026-02-11 11:14:18] Experiment status: timeout, Total runtime: 1800.0034 seconds
+[2026-02-11 11:14:18] ==================================================
+[2026-02-11 11:14:18] Grover experiment (n=128, it=15) finished
+[2026-02-11 11:14:18] ==================================================

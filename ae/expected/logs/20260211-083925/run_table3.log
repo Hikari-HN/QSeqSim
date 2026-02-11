@@ -1,0 +1,16 @@
+[Table3] Manifest verify OK: 9 files
+[Table3] Running rqc_q100_g50_m5.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g50_m10.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g50_m20.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g100_m5.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g100_m10.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g100_m20.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g200_m5.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g200_m10.py repeats=50 timeout=600s
+[Table3] Running rqc_q100_g200_m20.py repeats=50 timeout=600s
+
+[Table3] Saved raw: /workspace/ae/results/table3_raw.csv
+[Table3] Saved summary: /workspace/ae/results/table3.csv
+[Table3] Failure logs dir: /workspace/ae/results/logs/20260211-083925/table3
+
+[Full] table3.csv saved at ae/results/table3.csv

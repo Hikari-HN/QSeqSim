@@ -1,6 +1,7 @@
 import random
 import sys
 import os
+import argparse
 
 def generate_benchmark_script(filename, num_qubits, target_gates, target_mid_meas):
     """
@@ -176,39 +177,39 @@ def generate_benchmark_script(filename, num_qubits, target_gates, target_mid_mea
     return stats
 
 if __name__ == "__main__":
-    # Default values or user input
-    try:
-        if len(sys.argv) > 1:
-            # Support command line arguments: python gen_rqc.py 100 500 10
-            n = int(sys.argv[1])
-            g = int(sys.argv[2])
-            m = int(sys.argv[3])
-        else:
-            print("Using default/interactive mode.")
-            n = int(input("Enter number of qubits (default 100): ") or 100)
-            g = int(input("Enter target gate count (default 200): ") or 200)
-            m = int(input("Enter target mid-circuit measurements (default 5): ") or 5)
-    except ValueError:
-        print("Invalid input, using defaults.")
-        n, g, m = 100, 200, 5
+    import argparse
 
-    # --- Path and Filename Handling ---
-    # Get directory of current script (exp/simulation)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("n", type=int, nargs="?", default=100)
+    parser.add_argument("g", type=int, nargs="?", default=200)
+    parser.add_argument("m", type=int, nargs="?", default=5)
+    parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducible generation")
+    args = parser.parse_args()
+
+    if args.seed is not None:
+        random.seed(args.seed)
+
+    n, g, m = args.n, args.g, args.m
+
     current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Target directory set to rqc under current script directory
     output_dir = os.path.join(current_script_dir, "rqc")
-    
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        
-    # Filename format: rqc_q{n}_g{g}_m{m}.py
+    os.makedirs(output_dir, exist_ok=True)
+
     short_filename = f"rqc_q{n}_g{g}_m{m}.py"
     full_path = os.path.join(output_dir, short_filename)
-    
+
     final_stats = generate_benchmark_script(full_path, n, g, m)
-    
-    # Print table row format
+
+    # Append seed info into the generated file header (optional but useful)
+    if args.seed is not None:
+        with open(full_path, "r", encoding="utf-8") as f:
+            txt = f.read()
+        header = f"# Generator seed: {args.seed}\n"
+        if header not in txt:
+            txt = header + txt
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(txt)
+
     print("\n" + "="*65)
     print(f"{'Benchmark File':<25} | {'Qubits':<8} | {'Gates':<8} | {'Mid-Meas':<8}")
     print("-" * 65)

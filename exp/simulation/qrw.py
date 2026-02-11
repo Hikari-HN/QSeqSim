@@ -1,3 +1,4 @@
+import argparse
 import time
 import sys
 import os
@@ -51,7 +52,25 @@ def write_log(n, content):
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {content}\n")
 
-def run_qrw_experiment(n, it):
+def _parse_report_iters(report_iters_str):
+    """
+    Parse comma-separated iteration list.
+    Example: "3,10,100" -> {3,10,100}
+    """
+    if not report_iters_str:
+        return set()
+    items = []
+    for part in report_iters_str.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            items.append(int(part))
+        except ValueError:
+            pass
+    return set(items)
+
+def run_qrw_experiment(n, it, report_iters=None, timeout_seconds=TIMEOUT_SECONDS):
     """
     Execute a single group of Quantum Random Walk experiments
     :param n: Number of qubits
@@ -69,9 +88,12 @@ def run_qrw_experiment(n, it):
     start_total_time = time.time()  # Global start time of the experiment
     result = "success"
     
+    if report_iters is None:
+        report_iters = set()
+    
     try:
         # Set timeout alarm
-        signal.alarm(TIMEOUT_SECONDS)
+        signal.alarm(timeout_seconds)
         
         # Initialize simulator
         Sim = BDDSeqSim(n, n - 1, 3)
@@ -100,6 +122,10 @@ def run_qrw_experiment(n, it):
             # ONLY write to specific log file, no console print
             iter_msg = f"Iteration {cnt} - Probability: {Sim.prob_list[-1]}, Cumulative time: {cumulative_time:.4f} seconds"
             write_log(n, iter_msg)
+
+            # [AE Helper] Print machine-readable report lines for specific iterations
+            if cnt in report_iters:
+                print(f"[REPORT] n={n} iter={cnt} time={cumulative_time:.6f}")
         
         # Turn off timeout alarm
         signal.alarm(0)
@@ -131,17 +157,37 @@ def run_qrw_experiment(n, it):
 
 def main():
     """Main function: execute all experiment configurations in order"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n", type=int, default=None, help="Number of qubits (override EXPERIMENT_CONFIGS)")
+    parser.add_argument("--max-iters", type=int, default=None, help="Max iterations to run (override default it=1000)")
+    parser.add_argument("--report-iters", type=str, default="", help="Comma-separated iterations to report, e.g., 3,10,100")
+    parser.add_argument("--timeout", type=int, default=TIMEOUT_SECONDS, help="Timeout seconds (default 1800)")
+    args = parser.parse_args()
+
+    report_iters = _parse_report_iters(args.report_iters)
+
     # Record all experiment results
     experiment_results = []
     
-    for n, it in EXPERIMENT_CONFIGS:
+    # Determine which configurations to run
+    configs = EXPERIMENT_CONFIGS
+    if args.n is not None:
+        # If --n is specified, run only one configuration
+        it = args.max_iters if args.max_iters is not None else 1000
+        configs = [(args.n, it)]
+    else:
+        # If no --n, optionally override it for all EXPERIMENT_CONFIGS if --max-iters is given
+        if args.max_iters is not None:
+            configs = [(n, args.max_iters) for n, _ in EXPERIMENT_CONFIGS]
+    
+    for n, it in configs:
         # Write experiment start marker to specific log
         write_log(n, "="*50)
         write_log(n, f"Quantum Random Walk experiment (n={n}, it={it}) started")
         write_log(n, "="*50)
         
         # Execute current experiment
-        result, total_time = run_qrw_experiment(n, it)
+        result, total_time = run_qrw_experiment(n, it, report_iters=report_iters, timeout_seconds=args.timeout)
         experiment_results.append({
             "n": n,
             "it": it,

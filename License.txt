@@ -1,0 +1,4 @@
+This artifact is licensed under the terms in the file LICENSE.
+
+In addition, permission is granted to the FM 2026 Artifact Evaluation Committee (AEC)
+to download, build, run, and inspect the artifact for evaluation purposes.

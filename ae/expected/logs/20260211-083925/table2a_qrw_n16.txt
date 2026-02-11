@@ -1,0 +1,21 @@
+CMD: /usr/local/bin/python /workspace/exp/simulation/qrw.py --n 16 --max-iters 785 --report-iters 3,10,100,200,785 --timeout 1800
+
+
+========== Starting experiment: n=16, it=785 ==========
+[REPORT] n=16 iter=3 time=0.065250
+[REPORT] n=16 iter=10 time=0.167021
+[REPORT] n=16 iter=100 time=7.035992
+[REPORT] n=16 iter=200 time=36.731207
+
+❌ Runtime exceeds 1800 seconds, terminating current experiment
+
+========== Experiment finished: n=16, it=785 ==========
+Experiment status: timeout, Total runtime: 1800.0133 seconds
+
+----------------------------------------
+Preparing to execute next experiment configuration...
+----------------------------------------
+
+========== All experiments completed, summary results ==========
+n=16, it=785 - Status: timeout, Total runtime: 1800.0133 seconds
+

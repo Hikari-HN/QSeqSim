@@ -1,0 +1,62 @@
+{
+  "circuits_dir": "ae/benchmarks/table3/circuits_py",
+  "generated_at": "2026-02-10T12:51:53.086281Z",
+  "items": {
+    "rqc_q100_g100_m10.py": {
+      "gates_target": 100,
+      "mid_meas_target": 10,
+      "qubits": 100,
+      "sha256": "f1e9cf856b9a3e6feb79935e87f6aef8592bc30066a0e708fd6944847c601794"
+    },
+    "rqc_q100_g100_m20.py": {
+      "gates_target": 100,
+      "mid_meas_target": 20,
+      "qubits": 100,
+      "sha256": "46a5a1a0238afeaf3076899d3bc9a0a699e8f93189c4c675ed2cfa1a380c6f50"
+    },
+    "rqc_q100_g100_m5.py": {
+      "gates_target": 100,
+      "mid_meas_target": 5,
+      "qubits": 100,
+      "sha256": "1312deccf3fbc986ca711896cf25aa0dbaf0592ad61d3291edf0e0a1ef275bd9"
+    },
+    "rqc_q100_g200_m10.py": {
+      "gates_target": 200,
+      "mid_meas_target": 10,
+      "qubits": 100,
+      "sha256": "b3ad3b3d92b1a8ee1124b77d32d1a82f08b925c44d8da49bd552d5d520b0b403"
+    },
+    "rqc_q100_g200_m20.py": {
+      "gates_target": 200,
+      "mid_meas_target": 20,
+      "qubits": 100,
+      "sha256": "d63435b2b64a07273b192b99e24783c5013652420ae4a08ab6abf777634cac53"
+    },
+    "rqc_q100_g200_m5.py": {
+      "gates_target": 200,
+      "mid_meas_target": 5,
+      "qubits": 100,
+      "sha256": "376e9c7303a411c41a55f57660245011f0eb706bae656bd17f2aeeff8513c2c8"
+    },
+    "rqc_q100_g50_m10.py": {
+      "gates_target": 50,
+      "mid_meas_target": 10,
+      "qubits": 100,
+      "sha256": "bbe25a2f80479bc5d4ceaccf6058caa0379669898eaf997c8757d79b7449b815"
+    },
+    "rqc_q100_g50_m20.py": {
+      "gates_target": 50,
+      "mid_meas_target": 20,
+      "qubits": 100,
+      "sha256": "5f08458ab3a4a3acf71b87c2268fab543fd77bf9db82674c92b7ae5db1202049"
+    },
+    "rqc_q100_g50_m5.py": {
+      "gates_target": 50,
+      "mid_meas_target": 5,
+      "qubits": 100,
+      "sha256": "da9cc785d69eae4a6fdf059f32f443426577450a9706686bf5eb7bbe27df616e"
+    }
+  },
+  "note": "frozen circuits for Table 3 AE",
+  "schema": "qseqsim-ae.table3.manifest.v1"
+}

@@ -1,0 +1,19 @@
+[2026-02-11 09:44:17] Quantum Random Walk experiment log (n=1024) initialized
+[2026-02-11 09:44:17] ========== Starting experiment: n=1024, it=13 ==========
+[2026-02-11 09:45:30] Iteration 1 - Probability: 0.5, Cumulative time: 72.9604 seconds
+[2026-02-11 09:47:08] Iteration 2 - Probability: 0.5, Cumulative time: 171.0318 seconds
+[2026-02-11 09:49:11] Iteration 3 - Probability: 0.375, Cumulative time: 294.0090 seconds
+[2026-02-11 09:51:37] Iteration 4 - Probability: 0.375, Cumulative time: 439.2960 seconds
+[2026-02-11 09:54:08] Iteration 5 - Probability: 0.375, Cumulative time: 590.3899 seconds
+[2026-02-11 09:57:35] Iteration 6 - Probability: 0.375, Cumulative time: 797.9880 seconds
+[2026-02-11 10:00:36] Iteration 7 - Probability: 0.3671875, Cumulative time: 978.5176 seconds
+[2026-02-11 10:03:31] Iteration 8 - Probability: 0.3671875, Cumulative time: 1153.5537 seconds
+[2026-02-11 10:06:16] Iteration 9 - Probability: 0.3671875, Cumulative time: 1318.3850 seconds
+[2026-02-11 10:09:03] Iteration 10 - Probability: 0.3671875, Cumulative time: 1485.7110 seconds
+[2026-02-11 10:12:26] Iteration 11 - Probability: 0.365234375, Cumulative time: 1688.5771 seconds
+[2026-02-11 10:14:17] ❌ Runtime exceeds 1800 seconds, terminating current experiment
+[2026-02-11 10:14:17] ========== Experiment finished: n=1024, it=13 ==========
+[2026-02-11 10:14:17] Experiment status: timeout, Total runtime: 1800.0149 seconds
+[2026-02-11 10:14:17] ==================================================
+[2026-02-11 10:14:17] Quantum Random Walk experiment (n=1024, it=13) finished
+[2026-02-11 10:14:17] ==================================================
