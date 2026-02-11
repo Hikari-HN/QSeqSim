@@ -36,6 +36,21 @@ This artifact provides scripts to reproduce the paper’s experimental tables:
 
 All experiment scripts write machine-readable `.csv` files under `ae/results/`. Each CSV is produced by a single tool runner and is safe to compare directly to the paper’s tables.
 
+### 1.3 Claims and results reproduced
+
+This artifact reproduces the quantitative results reported in the paper’s Tables 1–5:
+
+* Table 1: RUS while-loop timing results (preset mode).
+* Table 2a: QRW timing results (BDDSeqSim).
+* Table 2b: Grover timing results (BDDSeqSim).
+* Table 3: Random quantum while-loop timing results with frozen circuits (sample mode).
+* Table 4: QRW reachability probabilities over iterations.
+* Table 5: RUS termination-pattern probabilities.
+
+### 1.4 Results not reproduced (and why)
+
+The artifact focuses on reproducing the paper’s experimental tables (Tables 1–5). Other narrative/qualitative discussion in the paper is not a separate, executable result and is therefore not reproduced here.
+
 ---
 
 ## 2. System requirements
@@ -43,6 +58,8 @@ All experiment scripts write machine-readable `.csv` files under `ae/results/`. 
 ### 2.1 Recommended execution environment
 
 The artifact is intended to run inside the provided Docker image (recommended by FM 2026 AE).
+
+We have also tested the amd64 Docker image on a Windows laptop successfully.
 
 If you run it natively, the required environment is:
 
@@ -52,7 +69,7 @@ If you run it natively, the required environment is:
 
 ### 2.2 Expected runtime (very important for AE)
 
-Expected running time (on a laptop-class machine, e.g., Apple M2 / 16GB RAM; times may vary across hardware and virtualization):
+Expected running time (on a laptop-class machine, e.g., Apple M2 / 16GB RAM). These estimates were measured on native hardware; Docker or slower machines may take longer:
 
 * (One-time) Load Docker image archive (`docker load`): ~1–3 minutes (disk-speed dependent).
 * Smoke test (`./ae/scripts/run_smoke.sh`, runs small subsets for Tables 1–5): < 1 minute (measured ~23 s).
@@ -162,9 +179,32 @@ All commands are run from the repository root. Each tool generates one CSV and p
 * `ae/expected/` — reference tables produced on a laptop-class Apple Silicon machine (e.g., Apple M2 / 16GB RAM)
 * `ae/precomputed/` — raw data as reported in the paper (archived for comparison)
 
+### 3.6 Script design and usage (how the AE scripts work)
+
+The AE entry scripts are layered to keep behavior consistent and logs organized:
+
+* `ae/scripts/run_all_tables.sh` is the **orchestrator**. It:
+  * creates a timestamped log directory (or uses `--log-dir`),
+  * exports `AE_LOG_DIR` so all tools write logs to the same place,
+  * runs `run_table*.sh` scripts in order, and
+  * supports `--only`, `--retry`, and `--continue-on-fail`.
+* `ae/scripts/run_smoke.sh` is a **wrapper** that calls `run_all_tables.sh` with `--smoke` to ensure a shared log directory.
+* Each `ae/scripts/run_tableX.sh` is a thin **adapter** that calls the matching `ae/tools/tableX.py` with standard parameters.
+* Extra arguments after `--` are forwarded to each `run_table*.sh`, which then passes them to the Python tool.
+
+This design ensures the smoke test and full runs share the same logging and failure-handling behavior.
+
 ---
 
 ## 4. Installation
+
+### 4.0 Step-by-step setup (recommended)
+
+1. Install Docker.
+2. Load the artifact image (see Section 4.1).
+3. Start the container and run the smoke test (see Section 5).
+
+If you prefer a native setup, follow Section 4.2 instead.
 
 ### 4.1 Using Docker (recommended for AE)
 
@@ -232,6 +272,12 @@ chmod +x ae/scripts/run_smoke.sh
 ./ae/scripts/run_smoke.sh
 ```
 
+**Step-by-step:**
+
+1. Ensure dependencies are installed (Section 4).
+2. Run `./ae/scripts/run_smoke.sh` from the repo root.
+3. Confirm the seven CSV files are created under `ae/results/`.
+
 **What it does:**
 
 * Runs **Table 1** (RUS) in `--smoke` mode:
@@ -277,6 +323,25 @@ Check the newest such directory for:
 
 ## 6. Reproducing paper results (Tables 1–5)
 
+If you have limited time or memory, use the `--smoke` modes or smaller subsets described in Sections 6.2–6.4 and 9.2. The most resource-intensive parts are Tables 2a and 2b (see Section 2.2 for expected runtime). A minimal subset is:
+
+```bash
+./ae/scripts/run_smoke.sh
+python ae/tools/table3.py --only g50m5 --repeats 3 --timeout 120
+```
+
+If the smoke test passes and you have sufficient time for a long run (typically 4–5 hours), you can reproduce all tables in one step:
+
+```bash
+./ae/scripts/run_all_tables.sh
+```
+
+**Step-by-step (full reproduction):**
+
+1. From the repo root, run `./ae/scripts/run_all_tables.sh`.
+2. Verify that `ae/results/table1.csv` through `ae/results/table5.csv` are generated.
+3. Compare against reference outputs in `ae/expected/` (laptop baseline) or `ae/precomputed/` (paper data archive) if desired.
+
 All runs below should be executed from the  **repository root** .
 
 ### 6.1 Table 1 — RUS while-loops
@@ -298,6 +363,8 @@ The runtime is printed by `exp_engine.py` as:
 
 `Total Runtime : <number> s` (with an emoji in the line).
 
+**Expected shape/trend:** small circuits (2 qubits, small gate count per iteration). Short loops finish quickly, while longer loops show wide runtime variation across U. The key trend is sensitivity to the specific unitary and BDD structure, not just loop depth. Absolute times may be higher in Docker or on slower hardware.
+
 ---
 
 ### 6.2 Table 2a — QRW benchmark
@@ -318,19 +385,21 @@ Smoke subset only:
 python ae/tools/table2a.py --smoke
 ```
 
+**Expected shape/trend:** rows scale by N and iterations. Runtime rises quickly with iteration count for small N, and for large N only a small number of iterations finish within the timeout. This indicates cost dominated by qubit and gate counts. Absolute times may be higher in Docker or on slower hardware.
+
 #### 6.2.1 Notes on timeouts and “last reported iteration” (important for AE)
 
-Table 2a runs each QRW configuration witha **per-run timeout** (default: **1800 seconds** in full mode).
-The runner reports timings only ata small setof **report iterations** (the same asinthe paper).
+Table 2a runs each QRW configuration with a **per-run timeout** (default: **1800 seconds** in full mode).
+The runner reports timings only at a small set of **report iterations** (the same as in the paper).
 
 The tools for AE sets `--max-iters` to the maximum value in `--report-iters`.
 
-Because Docker / virtualization can be slower than a native run ontheauthors’ machine, itispossiblethat:
+Because Docker / virtualization can be slower than a native run on the authors’ machine, it is possible that:
 
-- an experiment that finished just under 1800s inthe paper
+- an experiment that finished just under 1800s in the paper
 - may hit the 1800s timeout during AE reproduction
 
-In such cases, the CSV will contain `status=timeout_missing_iter` forthe missing report iteration(s). This is expected behavior and does not necessarily indicate a functional issue.
+In such cases, the CSV will contain `status=timeout_missing_iter` for the missing report iteration(s). This is expected behavior and does not necessarily indicate a functional issue.
 
 **How to judge whether the reproduction is still reasonable:**
 
@@ -338,11 +407,11 @@ For each `n`, the underlying experiment script (`exp/simulation/qrw.py`) writes 
 
 - `exp/simulation/data/qrw_<n>.log`
 
-During AE runs, the Table 2a tool archives this per-iteration logintothe timestamped results directory:
+During AE runs, the Table 2a tool archives this per-iteration log into the timestamped results directory:
 
 - `ae/results/logs/<timestamp>/table2a_qrw_n<n>_per_iter.log`
 
-This per-iteration logcontains **cumulative time** aftereach iteration, so you can compare:
+This per-iteration log contains **cumulative time** after each iteration, so you can compare:
 
 - the largest iteration reached before timeout, and
 - the growth trend of runtime vs iterations,
@@ -370,6 +439,8 @@ Smoke subset only:
 ```bash
 python ae/tools/table2b.py --smoke
 ```
+
+**Expected shape/trend:** similar scaling behavior to QRW. Runtime grows rapidly with iteration count for smaller qubit counts, and for larger qubit counts only a small number of iterations complete before timeout. This reflects the cost of large multi-qubit operators. Absolute times may be higher in Docker or on slower hardware.
 
 #### 6.3.1 Notes on timeouts and “last reported iteration” (important for AE)
 
@@ -430,6 +501,8 @@ Outputs:
 * `ae/results/table3_raw.csv` (one row per run)
 * `ae/results/table3.csv` (median/Q1/Q3 summary)
 
+**Expected shape/trend:** fixed qubit count with varying gate count G and mid-measurement count M. Median runtimes stay in a tractable range, grow with G, and show non-monotone dependence on M due to control-flow effects. Reported as median and IQR over 50 runs (right-skewed distribution). Absolute times may be higher in Docker or on slower hardware.
+
 #### 6.4.5 (Optional) Regenerate frozen circuits with fixed seeds
 
 If you want to **rebuild** the 9 frozen circuits from the generator using a fixed seed formula
@@ -438,10 +511,9 @@ If you want to **rebuild** the 9 frozen circuits from the generator using a fixe
 
 ```bash
 python ae/tools/table3_generate_frozen.py --force
-python ae/tools/table3_verify_manifest.py
 ```
 
-This regenerates the frozen circuits and updates the manifest.
+This regenerates the frozen circuits, refreshes the manifest, and verifies it (unless `--skip-verify` is used).
 
 ---
 
@@ -463,6 +535,8 @@ Smoke subset (faster):
 python ae/tools/table4.py --smoke
 ```
 
+**Expected shape/trend:** table lists k=1..10 with exact reachability probabilities and runtimes. Only specific k values yield non-zero reachability, probabilities decay rapidly, and runtime grows roughly linearly with k. Absolute times may be higher in Docker or on slower hardware.
+
 ---
 
 ### 6.6 Table 5 — Measurement-outcome reachability
@@ -482,6 +556,8 @@ Smoke subset (faster):
 ```bash
 python ae/tools/table5.py --smoke
 ```
+
+**Expected shape/trend:** table lists k=0..8 with per-pattern probability $p_{\text{path}}$ and cumulative termination probability $p_{\text{term}}$. $p_{\text{path}}$ drops quickly with k, while $p_{\text{term}}$ approaches 1 after a few iterations; runtimes remain very small compared to the other tables. Absolute times may be higher in Docker or on slower hardware.
 
 ---
 
@@ -592,26 +668,54 @@ This will:
 * execute using `src.simulator.BDDSimulator`,
 * print timing stats including total runtime.
 
-### 9.2 Add new Table 3-style random circuits
+### 9.2 Regenerate Table 3 frozen circuits (and rerun a subset)
 
-You can generate new random circuits using:
+Use the Table 3 frozen-circuit generator (recommended). It regenerates the frozen set, refreshes the manifest, and verifies it in one step:
 
 ```bash
-python exp/simulation/gen_rqc.py 100 200 5 --seed 12345
+python ae/tools/table3_generate_frozen.py --q 100 --force
 ```
 
-Then:
+This writes circuits under `ae/benchmarks/table3/circuits_py/`. If you want to keep the existing frozen set, omit `--force`. To skip verification, add `--skip-verify`.
 
-* copy the generated file from `exp/simulation/rqc/` into a new frozen dataset directory, and
-* run `ae/tools/table3_gen_manifest.py` to create a checksum manifest.
-
-### 9.3 Re-run Table 3 on a subset
-
-Use:
+Then rerun a smaller subset to validate the new frozen set:
 
 ```bash
 python ae/tools/table3.py --only g50m5,g100m10 --repeats 10
 ```
+
+### 9.3 Read the docs (recommended for reuse)
+
+For the Reusable badge, reviewers can start by reading:
+
+* [docs/USER_GUIDE.md](../docs/USER_GUIDE.md): library usage, core semantics, stable APIs, and minimal end-to-end examples.
+* [docs/REUSE.md](../docs/REUSE.md): how to add benchmarks, extend the gate set, and create regression tests.
+* [docs/RESULTS_FORMAT.md](../docs/RESULTS_FORMAT.md): exact CSV schemas and log locations for AE outputs.
+* [docs/ENVIRONMENT.md](../docs/ENVIRONMENT.md): Docker and native setup, with dd/CUDD troubleshooting.
+
+### 9.4 Run examples and tests (optional but encouraged)
+
+Examples (each is a runnable, self-contained demonstration):
+
+```bash
+python examples/branching_if_switch.py
+python examples/reachability_rus_pattern.py
+python examples/while_minimal.py
+```
+
+* `branching_if_switch.py`: shows `switch` and `if/else` classical control with mid-measurement, including QASM export and block parsing.
+* `reachability_rus_pattern.py`: demonstrates preset-mode while-loops with a fixed measurement pattern and reports the path probability.
+* `while_minimal.py`: minimal while-loop example in both sample and preset modes, showing state output and `global_probability`.
+
+Tests (lightweight regression coverage):
+
+```bash
+python test/test_parser.py
+python test/test_kernel.py
+```
+
+* `test_parser.py`: exercises Qiskit parsing and block structure (CQC/DQC/SQC) and runs a sample simulation.
+* `test_kernel.py`: exercises kernel gate operations, measurement updates, and state-vector printing.
 
 ---
 
