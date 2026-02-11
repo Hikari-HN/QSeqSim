@@ -1,8 +1,0 @@
-[2026-02-11 23:28:36] Quantum Random Walk experiment log (n=1024) initialized
-[2026-02-11 23:28:36] ========== Starting experiment: n=1024, it=13 ==========
-[2026-02-11 23:28:46] ❌ Runtime exceeds 1800 seconds, terminating current experiment
-[2026-02-11 23:28:46] ========== Experiment finished: n=1024, it=13 ==========
-[2026-02-11 23:28:46] Experiment status: timeout, Total runtime: 10.0013 seconds
-[2026-02-11 23:28:46] ==================================================
-[2026-02-11 23:28:46] Quantum Random Walk experiment (n=1024, it=13) finished
-[2026-02-11 23:28:46] ==================================================

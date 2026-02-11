@@ -1,9 +1,0 @@
-[2026-02-11 23:29:43] Grover experiment log (n=256) initialized
-[2026-02-11 23:29:43] ========== Starting experiment: n=256, it=6 ==========
-[2026-02-11 23:29:43] Iteration 1 - Probability: 0.5, Cumulative time: 0.5402 seconds
-[2026-02-11 23:29:53] ❌ Runtime exceeds 1800 seconds, terminating current experiment
-[2026-02-11 23:29:53] ========== Experiment finished: n=256, it=6 ==========
-[2026-02-11 23:29:53] Experiment status: timeout, Total runtime: 10.0031 seconds
-[2026-02-11 23:29:53] ==================================================
-[2026-02-11 23:29:53] Grover experiment (n=256, it=6) finished
-[2026-02-11 23:29:53] ==================================================
